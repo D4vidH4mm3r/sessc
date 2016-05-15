@@ -29,14 +29,14 @@ int main(int argc, char *argv[])
   int i;
   for (i=0; i<N; i++) {
     zmq_msg_init(&msg);
-    zmq_recv(a, &msg, 0);
+    zmq_msg_recv(a, &msg, 0);
     memcpy(&val, (int *)zmq_msg_data(&msg), zmq_msg_size(&msg));
     zmq_msg_close(&msg);
 
     int *buf = (int *)malloc(M * sizeof(int));
     memcpy(buf, &val, M * sizeof(int));
     zmq_msg_init_data(&msg, buf, M * sizeof(int), _dealloc, NULL);
-    zmq_send(a, &msg, 0);
+    zmq_msg_send(a, &msg, 0);
     zmq_msg_close(&msg);
   }
 
