@@ -52,10 +52,10 @@ int send_int_array(const int arr[], size_t count, role *r, const char *label)
     zmq_msg_init_data(&msg_label, buf_label, strlen(label), _dealloc, NULL);
     switch (r->type) {
       case SESSION_ROLE_P2P:
-        rc = zmq_send(r->p2p->ptr, &msg_label, ZMQ_SNDMORE);
+        rc = zmq_msg_send(r->p2p->ptr, &msg_label, ZMQ_SNDMORE);
         break;
       case SESSION_ROLE_GRP:
-        rc = zmq_send(r->grp->out->ptr, &msg_label, ZMQ_SNDMORE);
+        rc = zmq_msg_send(r->grp->out->ptr, &msg_label, ZMQ_SNDMORE);
         break;
     default:
         fprintf(stderr, "%s: Unknown endpoint type: %d\n", __FUNCTION__, r->type);
@@ -69,13 +69,13 @@ int send_int_array(const int arr[], size_t count, role *r, const char *label)
   zmq_msg_init_data(&msg, buf, size, _dealloc, NULL);
   switch (r->type) {
     case SESSION_ROLE_P2P:
-      rc = zmq_send(r->p2p->ptr, &msg, 0);
+      rc = zmq_msg_send(r->p2p->ptr, &msg, 0);
       break;
     case SESSION_ROLE_GRP:
 #ifdef __DEBUG__
       fprintf(stderr, "bcast -> %s(%d endpoints) ", r->grp->name, r->grp->nendpoint);
 #endif
-      rc = zmq_send(r->grp->out->ptr, &msg, 0);
+      rc = zmq_msg_send(r->grp->out->ptr, &msg, 0);
       break;
     default:
       fprintf(stderr, "%s: Unknown endpoint type: %d\n", __FUNCTION__, r->type);
@@ -139,7 +139,7 @@ int probe_label(char **label, role *r)
   zmq_msg_init(&msg);
   switch (r->type) {
     case SESSION_ROLE_P2P:
-      rc = zmq_recv(r->p2p->ptr, &msg, 0);
+      rc = zmq_msg_recv(r->p2p->ptr, &msg, 0);
       assert(rc == 0);
       rc = zmq_getsockopt(r->p2p->ptr, ZMQ_RCVMORE, &more, &more_size);
       assert(rc == 0);
@@ -148,7 +148,7 @@ int probe_label(char **label, role *r)
 #ifdef __DEBUG__
       fprintf(stderr, "recv_label <- %s (%d endpoints) ", r->grp->name, r->grp->nendpoint);
 #endif
-      rc = zmq_recv(r->grp->in->ptr, &msg, 0);
+      rc = zmq_msg_recv(r->grp->in->ptr, &msg, 0);
       assert(rc == 0);
       rc = zmq_getsockopt(r->grp->in->ptr, ZMQ_RCVMORE, &more, &more_size);
       assert(rc == 0);
@@ -198,13 +198,13 @@ int recv_int_array(int *arr, size_t *count, role *r)
   zmq_msg_init(&msg);
   switch (r->type) {
     case SESSION_ROLE_P2P:
-      rc = zmq_recv(r->p2p->ptr, &msg, 0);
+      rc = zmq_msg_recv(r->p2p->ptr, &msg, 0);
       break;
     case SESSION_ROLE_GRP:
 #ifdef __DEBUG__
       fprintf(stderr, "bcast <- %s(%d endpoints) ", r->grp->name, r->grp->nendpoint);
 #endif
-      rc = zmq_recv(r->grp->in->ptr, &msg, 0);
+      rc = zmq_msg_recv(r->grp->in->ptr, &msg, 0);
       break;
     default:
         fprintf(stderr, "%s: Unknown endpoint type: %d\n", __FUNCTION__, r->type);
@@ -279,7 +279,7 @@ int barrier(role *grp_role, char *at_rolename)
     // Wait for S1 (Phase 1) messages.
     for (i=0; i<grp_role->grp->nendpoint; ++i) {
       zmq_msg_init(&msg);
-      rc |= zmq_recv(grp_role->grp->in->ptr, &msg, 0);
+      rc |= zmq_msg_recv(grp_role->grp->in->ptr, &msg, 0);
       if (rc != 0) perror(__FUNCTION__);
       zmq_msg_close (&msg);
     }
@@ -292,7 +292,7 @@ int barrier(role *grp_role, char *at_rolename)
 
     zmq_msg_init_size(&msg, 2);
     memcpy(zmq_msg_data(&msg), "S2", 2);
-    rc |= zmq_send(grp_role->grp->out->ptr, &msg, 0);
+    rc |= zmq_msg_send(grp_role->grp->out->ptr, &msg, 0);
     if (rc != 0) perror(__FUNCTION__);
     zmq_msg_close(&msg);
 
@@ -303,7 +303,7 @@ int barrier(role *grp_role, char *at_rolename)
     // Send S1 (Phase 1) messages.
     zmq_msg_init_size(&msg, 2);
     memcpy(zmq_msg_data(&msg), "S1", 2);
-    rc |= zmq_send(grp_role->grp->out->ptr, &msg, 0);
+    rc |= zmq_msg_send(grp_role->grp->out->ptr, &msg, 0);
     if (rc != 0) perror(__FUNCTION__);
     zmq_msg_close(&msg);
 
@@ -314,7 +314,7 @@ int barrier(role *grp_role, char *at_rolename)
 
     // Wait for S2 (Phase 2) messages.
     zmq_msg_init(&msg);
-    rc |= zmq_recv(grp_role->grp->in->ptr, &msg, 0);
+    rc |= zmq_msg_recv(grp_role->grp->in->ptr, &msg, 0);
     if (rc != 0) perror(__FUNCTION__);
     zmq_msg_close(&msg);
 
