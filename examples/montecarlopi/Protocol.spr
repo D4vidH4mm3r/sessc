@@ -1,0 +1,14 @@
+// vim: ft=c
+/* Protocol: Monte Carlo Pi estimation. */
+import int;
+import bool;
+global protocol MonteCarloPi(role Master, role Worker0, role Worker1) {
+	// number of simulations to do in each worker
+	(int) from Master to Worker0; // broadcast
+	(int) from Master to Worker1; // broadcast
+	rec LOOP {
+		(bool) from Worker0 to Master; // gather
+		(bool) from Worker1 to Master; // gather
+		continue LOOP;
+	}
+}
