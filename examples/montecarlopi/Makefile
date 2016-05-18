@@ -22,8 +22,13 @@ w0: w0.c w0.spr
 w1: w1.c w1.spr
 	$(CC) $(CFLAGS) -o w1 w1.c $(LDFLAGS)
 
+.PHONY: programs
+programs: master w0 w1
+
 .PHONY: clean
 clean:
-	rm -f master.spr
-	rm -f w1.spr
-	rm -f w2.spr
+	rm -f master.spr w0.spr w1.spr
+	rm -f w0 w1 master
+
+.PHONY: all
+all: projections programs
